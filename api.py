@@ -73,12 +73,18 @@ def api_post_answer():
     logger.info("Received request to post an answer")
     data = request.json
     post_url = data.get('postURL')
+    answer_content = data.get('answerContent')
+    
     if not post_url:
         logger.error("postURL is missing in the request")
         return jsonify({"success": False, "message": "postURL is required"}), 400
+    
+    if not answer_content:
+        logger.error("answerContent is missing in the request")
+        return jsonify({"success": False, "message": "answerContent is required"}), 400
 
     logger.info(f"Posting answer to URL: {post_url}")
-    success = post_answer(post_url)
+    success = post_answer(post_url, answer_content)
     
     if success:
         logger.info("Answer posted successfully")
@@ -87,7 +93,7 @@ def api_post_answer():
         logger.error("Failed to post the answer")
         return jsonify({"success": False, "message": "Failed to post the answer"}), 500
 
-def post_answer(post_url):
+def post_answer(post_url, answer_content):
     logger.info(f"Attempting to post answer to {post_url}")
     try:
         with sync_playwright() as playwright, playwright.chromium.launch(headless=IS_RENDER) as browser:
@@ -115,7 +121,7 @@ def post_answer(post_url):
                 return False
 
             logger.info("Entering answer text")
-            page.fill('.doc.empty', 'Automation will lose a lot of jobs')
+            page.fill('.doc.empty', answer_content)  # Use the passed answer content here
             logger.info("Clicking post button")
             response = page.query_elements(POST_BUTTON_QUERY)
             remove_onetrust_el(page)
