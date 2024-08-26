@@ -15,6 +15,10 @@ app = Flask(__name__)
 EMAIL= os.getenv("EMAIL")
 PASSWORD = os.getenv("PASSWORD")
 
+IS_RENDER = True if os.getenv('RENDER') else False
+STATE_PATH = '/etc/secrets/quora_login.json' if IS_RENDER else 'quora_login.json'
+
+
 # Define the AgentQL queries (unchanged)
 LOGIN_BUTTON_QUERY = """
 {
@@ -41,6 +45,10 @@ POST_BUTTON_QUERY = """
     post_button
 }
 """
+
+def remove_onetrust_el(page):
+    # remove #onetrust-consent-sdk from document
+    page.evaluate('document.querySelector("#onetrust-consent-sdk")?.remove()')
 
 @app.route('/fetch_questions', methods=['POST'])
 def fetch_questions():
@@ -69,9 +77,6 @@ def api_post_answer():
         logger.error("postURL is missing in the request")
         return jsonify({"success": False, "message": "postURL is required"}), 400
 
-    logger.info("Saving signed-in state")
-    save_signed_in_state()
-
     logger.info(f"Posting answer to URL: {post_url}")
     success = post_answer(post_url)
     
@@ -85,14 +90,20 @@ def api_post_answer():
 def post_answer(post_url):
     logger.info(f"Attempting to post answer to {post_url}")
     try:
-        with sync_playwright() as playwright, playwright.chromium.launch(headless=False) as browser:
+        with sync_playwright() as playwright, playwright.chromium.launch(headless=IS_RENDER) as browser:
             logger.info("Loading saved session state")
-            context = browser.new_context(storage_state="quora_login.json")
+            context = browser.new_context(storage_state=STATE_PATH)
             page = agentql.wrap(context.new_page())
 
             logger.info(f"Navigating to {post_url}")
             page.goto(post_url)
             page.wait_for_load_state('domcontentloaded')
+
+            try:
+                logger.info("Attempting to accept cookies")
+                page.click('button[id="onetrust-accept-btn-handler"]')
+            except:
+                logger.warning("Cookie acceptance button not found or already accepted")
 
             logger.info("Clicking answer button")
             response = page.query_elements(ANSWER_BUTTON_QUERY)
@@ -105,9 +116,9 @@ def post_answer(post_url):
 
             logger.info("Entering answer text")
             page.fill('.doc.empty', 'Automation will lose a lot of jobs')
-
             logger.info("Clicking post button")
             response = page.query_elements(POST_BUTTON_QUERY)
+            remove_onetrust_el(page)
             if response.post_button:
                 response.post_button.click()
                 logger.info("Post button clicked successfully")
@@ -128,14 +139,14 @@ def post_answer(post_url):
 
 def save_signed_in_state():
     logger.info("Saving signed-in state")
-    with sync_playwright() as playwright, playwright.chromium.launch(headless=True) as browser:
+    with sync_playwright() as playwright, playwright.chromium.launch(headless=IS_RENDER) as browser:
         page = agentql.wrap(browser.new_page())
         logger.info("Navigating to Quora login page")
         page.goto("https://www.quora.com/")
         page.wait_for_load_state('domcontentloaded')
         try:
             logger.info("Attempting to accept cookies")
-            page.click('#onetrust-accept-btn-handler')
+            page.click('button[id="onetrust-accept-btn-handler"]')
         except:
             logger.warning("Cookie acceptance button not found or already accepted")
 
@@ -160,8 +171,8 @@ def save_signed_in_state():
 
 def load_signed_in_state_and_fetch_data(url):
     logger.info(f"Loading signed-in state and fetching data from {url}")
-    with sync_playwright() as playwright, playwright.chromium.launch(headless=True) as browser:
-        context = browser.new_context(storage_state="quora_login.json")
+    with sync_playwright() as playwright, playwright.chromium.launch(headless=IS_RENDER) as browser:
+        context = browser.new_context(storage_state=STATE_PATH)
         page = agentql.wrap(context.new_page())
         logger.info(f"Navigating to {url}")
         page.goto(url)
@@ -187,6 +198,6 @@ PORT = int(os.environ.get("PORT", 5000))
 if __name__ == "__main__":
     logger.info("Starting application")
     logger.info("Saving initial signed-in state")
-    save_signed_in_state()
+    # save_signed_in_state()
     logger.info(f"Starting Flask server on port {PORT}")
     app.run(host='0.0.0.0', port=PORT)
