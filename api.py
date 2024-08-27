@@ -120,27 +120,19 @@ def post_answer(post_url, answer_content):
                 logger.error("Answer button not found")
                 return False
 
-                logger.info("Clicking answer button")
-            response = page.locator('.q-click-wrapper.qu-active--textDecoration--none.qu-focus--textDecoration--none.qu-borderRadius--pill.qu-alignItems--center.qu-justifyContent--center.qu-whiteSpace--nowrap.qu-userSelect--none.qu-display--inline-flex.qu-bg--blue.qu-tapHighlight--white.qu-textAlign--center.qu-cursor--pointer.qu-hover--textDecoration--none.ClickWrapper___StyledClickWrapperBox-zoqi4f-0.bNPFlF.base___StyledClickWrapper-lx6eke-0.UDovu.puppeteer_test_modal_submit')
-
-            if response.count() > 0:  # Check if the element exists
-                response.click()
-                logger.info("Answer button clicked successfully")
-            else:
-                logger.error("Answer button not found")
-                return False
-
-
             logger.info("Entering answer text")
+            page.fill('.doc.empty', answer_content)  # Use the passed answer content here
+            logger.info("Clicking post button")
+            remove_onetrust_el(page)
             page.fill('.doc.empty', answer_content)  # Use the passed answer content here
             logger.info("Clicking post button")
             response = page.locator('.q-click-wrapper.qu-active--textDecoration--none.qu-focus--textDecoration--none.qu-borderRadius--pill.qu-alignItems--center.qu-justifyContent--center.qu-whiteSpace--nowrap.qu-userSelect--none.qu-display--inline-flex.qu-bg--blue.qu-tapHighlight--white.qu-textAlign--center.qu-cursor--pointer.qu-hover--textDecoration--none.ClickWrapper___StyledClickWrapperBox-zoqi4f-0.bNPFlF.base___StyledClickWrapper-lx6eke-0.UDovu.puppeteer_test_modal_submit')
 
             if response.count() > 0:  # Check if the element exists
                 response.click()
-                logger.info("Answer button clicked successfully")
+                logger.info("Post button clicked successfully")
             else:
-                logger.error("Answer button not found")
+                logger.error("Post button not found")
                 return False
 
             logger.info("Waiting for post to complete")
