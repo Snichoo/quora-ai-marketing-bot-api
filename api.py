@@ -12,8 +12,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-EMAIL= os.getenv("EMAIL")
-PASSWORD = os.getenv("PASSWORD")
+EMAIL= "study.only1223@gmail.com"
+PASSWORD = "Lawlibrary2113!"
 
 IS_RENDER = True if os.getenv('RENDER') else False
 STATE_PATH = '/etc/secrets/quora_login.json' if IS_RENDER else 'quora_login.json'
@@ -112,9 +112,10 @@ def post_answer(post_url, answer_content):
                 logger.warning("Cookie acceptance button not found or already accepted")
 
             logger.info("Clicking answer button")
-            response = page.query_elements(ANSWER_BUTTON_QUERY)
-            if response.answer_button:
-                response.answer_button.click()
+            response = page.locator('.q-click-wrapper.qu-active--textDecoration--none.qu-focus--textDecoration--none.qu-borderRadius--pill.qu-alignItems--center.qu-justifyContent--center.qu-whiteSpace--nowrap.qu-userSelect--none.qu-display--inline-flex.qu-bg--blue.qu-tapHighlight--white.qu-textAlign--center.qu-cursor--pointer.qu-hover--textDecoration--none.ClickWrapper___StyledClickWrapperBox-zoqi4f-0.bNPFlF.base___StyledClickWrapper-lx6eke-0.UDovu.puppeteer_test_modal_submit')
+
+            if response.count() > 0:  # Check if the element exists
+                response.click()
                 logger.info("Answer button clicked successfully")
             else:
                 logger.error("Answer button not found")
