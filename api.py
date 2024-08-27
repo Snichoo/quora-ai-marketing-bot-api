@@ -119,7 +119,6 @@ def post_answer(post_url, answer_content):
             page.fill('.doc.empty', answer_content)  # Use the passed answer content here
             logger.info("Clicking post button")
             remove_onetrust_el(page)
-            page.fill('.doc.empty', answer_content)  # Use the passed answer content here
             logger.info("Clicking post button")
             response = page.locator('.q-click-wrapper.qu-active--textDecoration--none.qu-focus--textDecoration--none.qu-borderRadius--pill.qu-alignItems--center.qu-justifyContent--center.qu-whiteSpace--nowrap.qu-userSelect--none.qu-display--inline-flex.qu-bg--blue.qu-tapHighlight--white.qu-textAlign--center.qu-cursor--pointer.qu-hover--textDecoration--none.ClickWrapper___StyledClickWrapperBox-zoqi4f-0.bNPFlF.base___StyledClickWrapper-lx6eke-0.UDovu.puppeteer_test_modal_submit')
 
