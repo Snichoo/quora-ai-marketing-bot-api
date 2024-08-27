@@ -105,11 +105,6 @@ def post_answer(post_url, answer_content):
             page.goto(post_url)
             page.wait_for_load_state('domcontentloaded')
 
-            try:
-                logger.info("Attempting to accept cookies")
-                page.click('button[id="onetrust-accept-btn-handler"]')
-            except:
-                logger.warning("Cookie acceptance button not found or already accepted")
 
             logger.info("Clicking answer button")
             response = page.query_elements(ANSWER_BUTTON_QUERY)
@@ -153,11 +148,7 @@ def save_signed_in_state():
         logger.info("Navigating to Quora login page")
         page.goto("https://www.quora.com/")
         page.wait_for_load_state('domcontentloaded')
-        try:
-            logger.info("Attempting to accept cookies")
-            page.click('button[id="onetrust-accept-btn-handler"]')
-        except:
-            logger.warning("Cookie acceptance button not found or already accepted")
+
 
         logger.info("Filling in login credentials")
         page.fill('input[name="email"]', EMAIL)
