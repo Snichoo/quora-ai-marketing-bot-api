@@ -99,12 +99,12 @@ def post_answer(post_url, answer_content):
         with sync_playwright() as playwright, playwright.chromium.launch(headless=IS_RENDER) as browser:
             logger.info("Loading saved session state")
             context = browser.new_context(storage_state=STATE_PATH)
+            context.set_default_timeout(60000)  # Set default timeout to 60 seconds for all actions
             page = agentql.wrap(context.new_page())
 
             logger.info(f"Navigating to {post_url}")
             page.goto(post_url)
             page.wait_for_load_state('domcontentloaded')
-
 
             logger.info("Clicking answer button")
             response = page.query_elements(ANSWER_BUTTON_QUERY)
@@ -117,6 +117,7 @@ def post_answer(post_url, answer_content):
 
             logger.info("Entering answer text")
             page.fill('.doc.empty', answer_content)  # Use the passed answer content here
+
             logger.info("Clicking post button")
             remove_onetrust_el(page)
             response = page.locator('.q-click-wrapper.qu-active--textDecoration--none.qu-focus--textDecoration--none.qu-borderRadius--pill.qu-alignItems--center.qu-justifyContent--center.qu-whiteSpace--nowrap.qu-userSelect--none.qu-display--inline-flex.qu-bg--blue.qu-tapHighlight--white.qu-textAlign--center.qu-cursor--pointer.qu-hover--textDecoration--none.ClickWrapper___StyledClickWrapperBox-zoqi4f-0.bNPFlF.base___StyledClickWrapper-lx6eke-0.UDovu.puppeteer_test_modal_submit')
