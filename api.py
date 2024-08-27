@@ -99,12 +99,17 @@ def post_answer(post_url, answer_content):
         with sync_playwright() as playwright, playwright.chromium.launch(headless=IS_RENDER) as browser:
             logger.info("Loading saved session state")
             context = browser.new_context(storage_state=STATE_PATH)
-            context.set_default_timeout(60000)  # Set default timeout to 60 seconds for all actions
             page = agentql.wrap(context.new_page())
 
             logger.info(f"Navigating to {post_url}")
             page.goto(post_url)
             page.wait_for_load_state('domcontentloaded')
+
+            try:
+                logger.info("Attempting to accept cookies")
+                page.click('button[id="onetrust-accept-btn-handler"]')
+            except:
+                logger.warning("Cookie acceptance button not found or already accepted")
 
             logger.info("Clicking answer button")
             response = page.query_elements(ANSWER_BUTTON_QUERY)
@@ -114,17 +119,9 @@ def post_answer(post_url, answer_content):
             else:
                 logger.error("Answer button not found")
                 return False
-            time.sleep(5)
+
             logger.info("Entering answer text")
-            # Use Playwright's type method to simulate typing into the contenteditable element
-            content_element = page.query_selector('.doc.empty[contenteditable="true"]')
-            if content_element:
-                content_element.click()  # Click to focus the element
-                page.keyboard.type(answer_content)  # Simulate typing the answer content
-                logger.info("Answer text typed successfully")
-            else:
-                logger.error("Contenteditable element not found")
-                return False
+            page.fill('.doc.empty', answer_content)
 
             logger.info("Clicking post button")
             remove_onetrust_el(page)
