@@ -116,7 +116,7 @@ def post_answer(post_url, answer_content):
                 return False
 
             logger.info("Entering answer text")
-            page.fill('.doc.empty', answer_content)  # Use the passed answer content here
+            page.fill('.doc.empty', answer_content)
 
             logger.info("Clicking post button")
             remove_onetrust_el(page)
